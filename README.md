@@ -36,11 +36,12 @@ Speak a command → Gemini figures out which of **43 browser tools** to call →
 
 > **Requires Chrome 116+** and a [Gemini API key](https://aistudio.google.com/apikey).
 
-1. Go to `chrome://extensions` → enable **Developer mode**
-2. Click **Load unpacked** → select this folder
-3. Pin the extension and click its icon to open the side panel
-4. Click **⚙ Settings** → paste your Gemini API key → Save
-5. Tap the **🎤 mic** — on first use, allow microphone access when prompted
+1. **Download this project as ZIP** and extract the folder.
+2. Go to `chrome://extensions` → enable **Developer mode**
+3. Click **Load unpacked** → select this folder
+4. Pin the extension and click its icon to open the side panel
+5. Click **⚙ Settings** → paste your Gemini API key → Save
+6. Tap the **🎤 mic** — on first use, allow microphone access when prompted
 
 ---
 
