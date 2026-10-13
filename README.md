@@ -1,102 +1,156 @@
-# Gemini Live Browser Agent (Chrome extension)
+<p align="center">
+  <img src="icons/icon128.png" width="80" alt="Gemini Live Browser Agent icon" />
+</p>
 
-A voice-controlled browser agent. You talk, Gemini 3.1 Flash Live (`gemini-3.1-flash-live-preview`) decides which browser tool to call, and the extension executes it in your real, logged-in Chrome.
+<h1 align="center">Gemini Live Browser Agent</h1>
 
-## Install
+<p align="center">
+  A voice-controlled browser agent powered by the Gemini Live API.<br/>
+  Talk to your browser — Gemini decides what to do, the extension does it.
+</p>
 
-1. Open `chrome://extensions` and switch on **Developer mode**.
-2. Click **Load unpacked** and select this folder.
-3. Pin the extension and click its icon. The side panel opens.
-4. Click the gear, paste your Gemini API key (from https://aistudio.google.com/apikey) and save.
-5. Tap the mic. The first time, Chrome opens a tab to ask for microphone access; allow it and tap the mic again.
+<p align="center">
+  <img src="https://img.shields.io/badge/Manifest-V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white" alt="MV3"/>
+  <img src="https://img.shields.io/badge/Chrome-116+-34A853?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome 116+"/>
+  <img src="https://img.shields.io/badge/Gemini%20Live%20API-8E44AD?style=flat-square&logo=google&logoColor=white" alt="Gemini Live API"/>
+  <img src="https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript"/>
+  <img src="https://img.shields.io/badge/WebSocket-raw-00ADB5?style=flat-square" alt="WebSocket"/>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License"/>
+</p>
 
-Requires Chrome 116 or newer (side panel API).
+---
 
-## What it can do (43 tools)
+## ✨ What it does
 
-| Area | Tools |
+Speak a command → Gemini figures out which of **43 browser tools** to call → the extension executes it in your real, logged-in Chrome.
+
+- 🎙️ **Voice + text input** — interrupt the model mid-sentence
+- 🧠 **Snapshot-based vision** — numbers every interactive element on the page (no coordinate guessing)
+- 🔒 **Built-in approval gates** — risky actions (Buy, Delete, Pay…) always ask first
+- 🗓️ **Scheduled tasks** — set recurring checks via `chrome.alarms`
+- 💾 **Persistent memory** — notes survive across sessions
+
+---
+
+## 🚀 Quick Start
+
+> **Requires Chrome 116+** and a [Gemini API key](https://aistudio.google.com/apikey).
+
+1. Go to `chrome://extensions` → enable **Developer mode**
+2. Click **Load unpacked** → select this folder
+3. Pin the extension and click its icon to open the side panel
+4. Click **⚙ Settings** → paste your Gemini API key → Save
+5. Tap the **🎤 mic** — on first use, allow microphone access when prompted
+
+---
+
+## 🛠️ Tools (43 total)
+
+| Category | Tools |
 |---|---|
-| Tabs and windows | `list_tabs`, `open_tab`, `close_tab`, `switch_tab`, `duplicate_tab`, `reopen_closed_tab`, `group_tabs`, `mute_tab` (mute/pin), `manage_window`, `zoom_page` |
-| Navigation and browser data | `navigate`, `search`, `get_history`, `bookmark_page` |
-| Seeing | `get_page_snapshot`, `list_frames`, `take_screenshot`, `full_page_screenshot`, `extract_text`, `find_in_page`, `wait_for`, `wait`, `get_console_logs`, `get_network_log` |
-| Acting | `click`, `click_at`, `hover`, `drag_and_drop`, `type_text`, `fill_form`, `select_option`, `press_key`, `scroll`, `handle_dialog`, `upload_file` |
-| Output | `download_file`, `save_pdf`, `read_clipboard`, `notify_user` |
-| Power and system | `run_javascript`, `emulate_device`, `remember`, `schedule_check` |
+| **Tabs & Windows** | `list_tabs` `open_tab` `close_tab` `switch_tab` `duplicate_tab` `reopen_closed_tab` `group_tabs` `mute_tab` `manage_window` `zoom_page` |
+| **Navigation** | `navigate` `search` `get_history` `bookmark_page` |
+| **Seeing** | `get_page_snapshot` `list_frames` `take_screenshot` `full_page_screenshot` `extract_text` `find_in_page` `wait_for` `wait` `get_console_logs` `get_network_log` |
+| **Acting** | `click` `click_at` `hover` `drag_and_drop` `type_text` `fill_form` `select_option` `press_key` `scroll` `handle_dialog` `upload_file` |
+| **Output** | `download_file` `save_pdf` `read_clipboard` `notify_user` |
+| **Power** | `run_javascript` `emulate_device` `remember` `schedule_check` |
 
-Tools marked "Needs Trusted input" in their description use Chrome's debugger (CDP): `click_at`, `drag_and_drop`, `handle_dialog`, `upload_file`, `full_page_screenshot`, `save_pdf`, `run_javascript`, `emulate_device`, `get_console_logs`, `get_network_log`. If you turn that setting off they return an error telling the model to ask you to enable it.
+> Tools using CDP (Chrome DevTools Protocol) require **Trusted Input** to be enabled: `click_at`, `drag_and_drop`, `handle_dialog`, `upload_file`, `full_page_screenshot`, `save_pdf`, `run_javascript`, `emulate_device`, `get_console_logs`, `get_network_log`.
 
-You can speak or type. Talking over the model interrupts it.
+---
 
-### Notes on the newer tools
-
-- **Iframes.** `get_page_snapshot` reports when a page has iframes; call it with `includeFrames` to number elements inside them. Refs encode their frame (`ref = slot * 1000 + index`), and the executor routes each action to the right frame. Clicks inside iframes use DOM events rather than trusted input.
-- **Coordinates.** `take_screenshot` returns the image size; `click_at` and `drag_and_drop` take coordinates in that image's pixels and convert to page pixels. Coordinate clicks still pass through the approval check by probing what is under the point.
-- **Dialogs.** An open `alert/confirm/prompt` freezes the page. The executor detects this, fails fast with a clear message instead of hanging, and the model uses `handle_dialog`.
-- **Console and network.** Capture starts on the first call to `get_console_logs` / `get_network_log`, so call once, reproduce the issue, then call again.
-- **Memory.** `remember` notes are replayed into the system prompt of future sessions, marked as data. Saving always asks you first, so a web page can't plant instructions.
-- **Schedules.** `schedule_check` uses `chrome.alarms`. When one fires and a session is open and idle, the task is sent to Gemini as a message; otherwise you get a desktop notification. The side panel must be open for the agent to act.
-- **Emulation** (`emulate_device`) resets when the debugger detaches, which happens when the session ends.
-
-## How it works
+## 🏗️ Architecture
 
 ```
 Mic (16 kHz PCM) ──► Live API WebSocket ◄── screenshots (JPEG frames)
                           │
-                          │ toolCall
+                          │  toolCall
                           ▼
                      tools.js executor ──► chrome.tabs / chrome.scripting / chrome.debugger
                           │
                           └── toolResponse (JSON) ──► model continues
 ```
 
-- **Snapshots, not pixels.** `get_page_snapshot` injects a script that numbers every visible interactive element (including inside open shadow DOM). The model acts by `ref`, which is far more reliable than guessing coordinates. Screenshots are there for when layout matters.
-- **Trusted input.** With "Trusted input" on, clicks, keys and text go through the Chrome DevTools Protocol, so sites treat them as real user input. Chrome shows a "debugging this browser" bar while this is active. Turn it off to fall back to DOM events.
-- **Everything runs in the side panel page.** A service worker would be suspended while idle and drop the WebSocket, so `background.js` only opens the panel.
-- **No SDK.** `lib/live.js` speaks the raw WebSocket protocol, so there is nothing to bundle.
+**Key design decisions:**
 
-## Files
+- **Snapshots over pixels** — `get_page_snapshot` numbers every visible interactive element (including shadow DOM). The model acts on stable `ref` IDs.
+- **No SDK** — `lib/live.js` speaks the raw WebSocket protocol. Nothing to bundle.
+- **Side panel, not service worker** — avoids WebSocket drops from idle suspension.
+- **Trusted input** — clicks and keystrokes go through CDP so sites treat them as real user input.
+
+---
+
+## 📁 Project Structure
 
 ```
-manifest.json          MV3 manifest
-background.js          opens the side panel, fires scheduled checks
-sidepanel.html/css/js  UI, session lifecycle, tool-call loop, approvals
-permissions.html/js    one-time microphone permission tab
-worklets/capture.js    AudioWorklet: mic -> 16-bit PCM frames
-lib/live.js            Live API WebSocket client
-lib/audio.js           mic capture + gapless playback + barge-in
-lib/tools.js           tool declarations + executor (add new tools here)
-lib/page-scripts.js    functions injected into pages
-lib/cdp.js             chrome.debugger: trusted input, dialogs, console/network capture, screenshots, PDF
+├── manifest.json          MV3 manifest
+├── background.js          Opens the side panel, fires scheduled checks
+├── sidepanel.html/css/js  UI, session lifecycle, tool-call loop, approvals
+├── permissions.html/js    One-time microphone permission tab
+├── worklets/
+│   └── capture.js         AudioWorklet: mic → 16-bit PCM frames
+└── lib/
+    ├── live.js             Live API WebSocket client
+    ├── audio.js            Mic capture + gapless playback + barge-in
+    ├── tools.js            Tool declarations + executor (add new tools here)
+    ├── page-scripts.js     Functions injected into pages
+    └── cdp.js              Trusted input, dialogs, console/network, screenshots, PDF
 ```
 
-## Safety
+---
 
-- **Some tools always ask, even with approvals turned off:** `run_javascript`, `upload_file`, `read_clipboard` and saving with `remember`. They can read local data, run arbitrary code, or persist instructions, so they are never silent.
-- **Approvals are enforced in code.** With "Ask before risky actions" on, clicking buttons labelled Buy, Pay, Submit, Send, Delete, Sign out and similar, and typing into password or card-like fields, pauses the tool until you press Allow. The model cannot skip this. Edit `SENSITIVE_CLICK` and `SENSITIVE_FIELD` in `lib/tools.js` to tune it.
-- **Prompt injection.** Web pages can contain text that tries to instruct the agent. The system prompt tells the model to treat page content as data, but that is a mitigation, not a guarantee. Keep approvals on, and avoid pointing the agent at sensitive logged-in sessions you would not want automated.
-- **API key.** It is stored in `chrome.storage.local` and sent from the browser, which is fine for personal use. For anything you distribute, mint short-lived ephemeral tokens from a small backend instead.
-- **Permissions.** The extension requests `<all_urls>`, `tabs`, `scripting` and `debugger` for page control, plus `bookmarks`, `downloads`, `history`, `tabGroups`, `notifications`, `clipboardRead`/`clipboardWrite`, `sessions`, `alarms` and `webNavigation` for the added tools. Remove a permission from `manifest.json` together with its tool if you don't want it. It cannot act on `chrome://` pages or the Chrome Web Store.
+## 🔐 Security & Safety
 
-## Troubleshooting
+- **Always-ask tools:** `run_javascript`, `upload_file`, `read_clipboard`, and `remember` — these can read local data or persist instructions and are never silently executed.
+- **Approval gates:** Sensitive clicks (Buy, Pay, Submit, Delete…) and sensitive fields (password, card) pause for user confirmation. Edit `SENSITIVE_CLICK` / `SENSITIVE_FIELD` in `lib/tools.js` to tune.
+- **API key:** Stored in `chrome.storage.local` — fine for personal use. For distribution, use short-lived ephemeral tokens from a backend.
+- **Prompt injection:** The system prompt instructs the model to treat page content as data — but keep approvals on when browsing sensitive sessions.
+
+---
+
+## 🐛 Troubleshooting
 
 | Symptom | Fix |
 |---|---|
-| "Could not connect" or closes immediately | Check the API key and that the model name in settings is available to your key. Turn off **Long-session mode** (compression and resumption may not be accepted by every model). Set **Thinking** back to "Model default". |
-| Mic does nothing | Allow the microphone on the permission tab, then tap the mic again. Check `chrome://settings/content/microphone`. |
-| Agent says it can't see the page | The active tab is a restricted page (`chrome://`, Web Store). Ask it to open a normal site. |
-| Click lands on the wrong thing | Refs go stale after the page changes. The agent should re-snapshot; remind it in the prompt if it does not. |
-| Sites ignore typing | Make sure **Trusted input** is on. |
-| Search shows a consent or CAPTCHA page | Edit the URL in the `search` tool (`lib/tools.js`) to use another engine. |
+| "Could not connect" | Check API key; disable Long-session mode; reset Thinking to "Model default" |
+| Mic does nothing | Allow microphone on the permission tab; check `chrome://settings/content/microphone` |
+| Can't see the page | Active tab is a restricted page (`chrome://`, Web Store) — navigate to a normal site |
+| Clicks land wrong | Re-snapshot after page changes; remind the agent if needed |
+| Typing is ignored | Enable **Trusted Input** in settings |
 
-## Extending
+---
 
-Add a declaration to `declarations` and a matching function to `impl` in `lib/tools.js`. Each new Chrome API needs its permission in `manifest.json`. Keep an eye on tool count: 43 tools is fine for Gemini, but every extra declaration adds prompt tokens and a little selection noise, so drop tools you never use.
+## 🧩 Extending
 
-## Known limits
+Add a declaration to `declarations` and a matching handler to `impl` in [`lib/tools.js`](lib/tools.js). New Chrome APIs also need their permission added to [`manifest.json`](manifest.json).
 
-- Iframes: elements are numbered and can be clicked, typed into and read, but coordinate tools, dragging and uploads don't work inside them. Cross-origin frames the extension can't script (some payment widgets) stay invisible; use `take_screenshot` plus keyboard navigation.
-- `drag_and_drop` sends mouse events; native HTML5 drag-and-drop (draggable elements) may not respond.
-- `upload_file` needs an absolute local path you give the agent, and doesn't reach file inputs inside shadow roots.
-- Native OS dialogs (print, file pickers) are not controllable.
-- Clipboard access can fail if the side panel isn't focused; click inside it once and retry.
-- Gemini 3.1 Flash Live is a preview model and Google may change or retire it; the model name is editable in settings.
+> Keep tool count in mind — 43 tools is fine for Gemini, but every extra declaration adds prompt tokens. Remove tools you never use.
+
+---
+
+## ⚠️ Known Limits
+
+- Coordinate tools, drag, and uploads don't work **inside iframes**
+- `drag_and_drop` uses mouse events — native HTML5 draggable elements may not respond
+- `upload_file` needs an absolute local path and doesn't reach file inputs inside shadow roots
+- Native OS dialogs (print, file pickers) are not controllable
+- Clipboard access may fail if the side panel isn't focused — click inside it first
+- `gemini-3.1-flash-live-preview` is a preview model — the model name is editable in Settings
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue to discuss major changes before submitting a PR.
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'feat: add my feature'`
+4. Push and open a Pull Request
+
+---
+
+## 📄 License
+
+[MIT](LICENSE) © 2026 Viknesh
+
