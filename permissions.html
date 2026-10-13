@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Allow microphone</title>
+  <style>
+    body { font: 15px/1.5 system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh; margin: 0; background: #edf0f3; color: #18222e; }
+    main { max-width: 380px; padding: 28px; background: #fafbfc; border: 1px solid #d9dee4; border-radius: 14px; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    p { margin: 0 0 16px; color: #4a5666; }
+    button { padding: 9px 16px; border: 0; border-radius: 8px; background: #18222e; color: #fafbfc; font: inherit; font-weight: 600; cursor: pointer; }
+    #msg { margin-top: 14px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Allow microphone access</h1>
+    <p>The browser agent listens through your microphone. Chrome can only ask for permission from a full tab, not from the side panel.</p>
+    <button id="allow">Allow microphone</button>
+    <p id="msg" role="status"></p>
+  </main>
+  <script src="permissions.js"></script>
+</body>
+</html>

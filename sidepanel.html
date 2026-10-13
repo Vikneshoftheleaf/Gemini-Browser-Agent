@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gemini browser agent</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="bar">
+    <div class="status" id="status" data-state="idle">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="statusText">Not connected</span>
+    </div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Settings" title="Settings">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.2"/>
+        <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.2.62.8 1.03 1.56 1.03H21a2 2 0 1 1 0 4h-.09c-.76 0-1.36.41-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="stream" id="stream" aria-live="polite">
+    <div class="empty" id="empty">
+      <p class="empty-title">Say what to do in the browser.</p>
+      <p class="empty-body">Try “open Hacker News and read me the top three stories”, or “search for flights to Lisbon and screenshot the results”.</p>
+    </div>
+  </main>
+
+  <section class="approval" id="approval" hidden role="alertdialog" aria-labelledby="approvalText">
+    <p class="approval-label">Needs your OK</p>
+    <p class="approval-text" id="approvalText"></p>
+    <div class="approval-actions">
+      <button class="btn ghost" id="denyBtn">Deny</button>
+      <button class="btn solid" id="approveBtn">Allow</button>
+    </div>
+  </section>
+
+  <footer class="dock">
+    <form class="composer" id="composer" autocomplete="off">
+      <input id="textInput" type="text" placeholder="Or type a request" aria-label="Type a request" />
+      <button class="icon-btn send" type="submit" aria-label="Send" title="Send">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+
+    <div class="controls">
+      <button class="orb" id="orb" aria-label="Start session" data-mode="idle">
+        <svg class="orb-icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="11" rx="3"/>
+          <path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
+          <path class="slash" d="M4 4l16 16"/>
+        </svg>
+      </button>
+      <div class="orb-meta">
+        <span class="orb-state" id="orbState">Tap to start</span>
+        <button class="link-btn" id="endBtn" hidden>End session</button>
+      </div>
+    </div>
+  </footer>
+
+  <dialog id="settings" class="sheet">
+    <form method="dialog" class="sheet-form" id="settingsForm">
+      <h2>Settings</h2>
+
+      <label class="field">
+        <span>Gemini API key</span>
+        <input type="password" id="apiKey" placeholder="AIza…" spellcheck="false" />
+        <small>Stored only in this browser profile. Get one at aistudio.google.com.</small>
+      </label>
+
+      <label class="field">
+        <span>Model</span>
+        <input type="text" id="model" spellcheck="false" />
+      </label>
+
+      <div class="row">
+        <label class="field">
+          <span>Voice</span>
+          <select id="voice">
+            <option>Puck</option><option>Kore</option><option>Charon</option>
+            <option>Aoede</option><option>Fenrir</option><option>Zephyr</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Thinking</span>
+          <select id="thinkingLevel">
+            <option value="">Model default</option>
+            <option value="minimal">Minimal</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="trusted" />
+        <span><b>Trusted input</b><small>Use Chrome’s debugger for real clicks and keystrokes. Chrome shows a “debugging this browser” bar while active.</small></span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="approvals" />
+        <span><b>Ask before risky actions</b><small>Buttons like Buy, Send, Delete, and password or card fields need your approval.</small></span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" id="longSession" />
+        <span><b>Long-session mode</b><small>Context compression and automatic reconnect. Turn it off if the connection fails on start.</small></span>
+      </label>
+
+      <label class="field">
+        <span>System prompt</span>
+        <textarea id="systemPrompt" rows="8" spellcheck="false"></textarea>
+      </label>
+
+      <div class="sheet-actions">
+        <button type="button" class="btn ghost" id="resetPrompt">Reset prompt</button>
+        <button type="submit" class="btn solid" value="close">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
